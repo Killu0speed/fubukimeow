@@ -1,0 +1,27 @@
+[
+    {
+        "session": "yumeko",
+        "token": "7165211818:AAHp6Y3xr9qjW5gPJa1RZdDGcoWptkj_fAQ",
+        "api_id": "11289522",
+        "api_hash": "4d108545f540f47e1ebdb1715f672579",
+        "workers": 8,
+        "db_uri": "mongodb+srv://Hunters:Hunters@cluster0.hbjssvk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+        "db_name": "Hunters",
+        "fsubs": [[-1002111055692, false, 10]],
+        "db": -1002012154025,
+        "auto_del": 600,
+        "messages": {
+            "START": "<b>Hi There... {mention}! 💥\n\nI am a file-store bot.\nI can generate links directly with no problems\nMy Owner: @Okabe_xRintarou</b>",
+            "FSUB": "Hello There..!⚡\n\n🫧Please join both of our channels first then try again...!",
+            "ABOUT": "<b><i>About Us..\n\n‣ Made for : Anime x Hunters\n‣ Owner : @Its_Sahil_Ansari\n‣ Worked For : @Hunters_Association\n‣ Developer : @The_Seishiro_Nagi\n\n Adios !!</i></b>",
+            "REPLY": "<b>For More Join - @Cultured_Nation</b>",
+            "SHORT_MSG": "<b><i>Your Link is Ready! 👇\n\nFor any error contact: @Izana_Sensei</i></b>",
+            "START_PHOTO": "https://graph.org/file/276d8ba0a6eabcbd9a364.jpg",
+            "FSUB_PHOTO": "https://graph.org/file/d36946b4d1b2e77eab1d5.jpg",
+            "SHORT_PIC": "https://telegra.ph/file/01931b3b602e976c11717-9778b16fd120f8ec11.jpg"
+        },
+        "admins": [7493303801],
+        "disable_btn": true,
+        "protect": false
+    }
+]
