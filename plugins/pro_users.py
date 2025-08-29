@@ -3,19 +3,19 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from config import OWNER_ID
 #========================================================================#
 #========================================================================#
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import asyncio
-from config import OWNER_ID
 
 PLANS = {
     "7d": ("7 Days", 40, 7 * 24 * 60 * 60),
     "1m": ("1 Month", 100, 30 * 24 * 60 * 60),
     "3m": ("3 Months", 200, 90 * 24 * 60 * 60),
+    "none": ("Custom Plan", 0, 0),
 }
 
+# -----------------------
+# AUTHORIZE COMMAND
+# -----------------------
 @Client.on_message(filters.command('authorize') & filters.private)
-async def authorize(client, message):
+async def add_admin_command(client: Client, message: Message):
     if message.from_user.id != OWNER_ID:
         return await message.reply_text("Only Owner can use this command...!")
 
@@ -23,70 +23,60 @@ async def authorize(client, message):
         return await message.reply_text("<b>Format:</b> /authorize <userid>")
 
     try:
-        user_id = int(message.command[1])
-        user = await client.get_users(user_id)
+        user_id_to_add = int(message.command[1])
+        user = await client.get_users(user_id_to_add)
         user_name = user.first_name + (" " + user.last_name if user.last_name else "")
     except Exception as e:
         return await message.reply_text(f"Error: {e}")
 
-    client.temp_auth = {"user_id": user_id, "user_name": user_name}
+    # Check if already pro
+    if await client.mongodb.is_pro(user_id_to_add):
+        return await message.reply_text(f"<b>User {user_name} - {user_id_to_add} is already a pro.</b>")
 
+    # Save context temporarily
+    client.temp_auth = {"user_id": user_id_to_add, "user_name": user_name}
+
+    # Inline buttons in horizontal layout
     buttons = [
         [
             InlineKeyboardButton("7 Days", callback_data="plan_7d"),
             InlineKeyboardButton("1 Month", callback_data="plan_1m"),
             InlineKeyboardButton("3 Months", callback_data="plan_3m"),
-        ],
-        [InlineKeyboardButton("❌ None", callback_data="plan_none")]
+            InlineKeyboardButton("None", callback_data="plan_none"),
+        ]
     ]
-
     await message.reply_text(
-        f"Select a plan for <b>{user_name}</b> ({user_id}):",
+        f"Select a plan for <b>{user_name}</b> ({user_id_to_add}):",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
+# -----------------------
+# PLAN SELECTION CALLBACK
+# -----------------------
 @Client.on_callback_query(filters.regex(r"^plan_"))
-async def handle_plan(client, query: CallbackQuery):
+async def handle_plan_selection(client: Client, query: CallbackQuery):
     if query.from_user.id != OWNER_ID:
         return await query.answer("Not for you!", show_alert=True)
 
     plan_key = query.data.split("_")[1]
-    user_id = client.temp_auth["user_id"]
-    user_name = client.temp_auth["user_name"]
-
-    # remove the whole selection message
-    await query.message.delete()
-
-    if plan_key == "none":
-        if not await client.mongodb.is_pro(user_id):
-            await client.mongodb.add_pro(user_id)
-
-        await query.message.reply_text(
-            f"<b>User {user_name} - {user_id} is now a pro user with Custom plan..!</b>"
-        )
-        try:
-            await client.send_message(
-                user_id, "<b>🎉 Congratulations! Your membership has been activated for custom plan.</b>"
-            )
-        except Exception as e:
-            await query.message.reply_text(f"Failed to notify user: {e}")
-        return
-
     if plan_key not in PLANS:
         return await query.answer("Invalid plan!")
 
-    plan_name, price, duration = PLANS[plan_key]
+    user_id = client.temp_auth["user_id"]
+    user_name = client.temp_auth["user_name"]
+    plan_name, price, duration_seconds = PLANS[plan_key]
 
-    if not await client.mongodb.is_pro(user_id):
-        await client.mongodb.add_pro(user_id)
+    # Add to DB
+    await client.mongodb.add_pro(user_id)
 
-    await query.message.reply_text(
-        f"<b>User {user_name} - {user_id} is now a pro user with {plan_name} plan..!</b>"
-    )
+    # Close buttons (edit markup only)
+    await query.message.edit_reply_markup(reply_markup=None)
 
+    # Notify user
     try:
         await client.send_message(
-            user_id, f"<b>🎉 Congratulations! Your membership has been activated for {plan_name}.</b>"
+            user_id,
+            f"<b>🎉 Congratulations! Your membership has been activated for {plan_name}.</b>"
         )
     except Exception as e:
         await query.message.reply_text(f"Failed to notify user: {e}")
@@ -148,5 +138,6 @@ async def admin_list_command(client: Client, message: Message):
         )
     else:
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
