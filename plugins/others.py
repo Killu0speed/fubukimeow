@@ -128,7 +128,7 @@ async def premium(client: Client, query: CallbackQuery):
             [
                 [
                     InlineKeyboardButton("🌐 Our Network", url="https://example.com"),
-                    InlineKeyboardButton("❌ Close", callback_data="back")
+                    InlineKeyboardButton("Go back", callback_data="back")
                 ]
             ]
         )
@@ -139,3 +139,4 @@ async def premium(client: Client, query: CallbackQuery):
 @Client.on_callback_query(filters.regex("^back$"))
 async def back(client: Client, query: CallbackQuery):
     await query.message.edit_reply_markup(None)
+
