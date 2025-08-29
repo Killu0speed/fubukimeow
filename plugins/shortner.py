@@ -6,6 +6,13 @@ from config import SHORT_URL, SHORT_API
 # ✅ In-memory cache
 shortened_urls_cache = {}
 
+async def total_click(link_id: str) -> int:
+    """
+    Return total clicks for the given shortened link.
+    Replace this logic with your actual DB or API call.
+    """
+    return 0
+
 def generate_random_alphanumeric():
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(8))
@@ -28,5 +35,6 @@ def get_short(url, client):
             return short_url
     except Exception as e:
         print(f"[Shortener Error] {e}")
+
 
     return url  # fallback
