@@ -111,14 +111,13 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
 
 
 #========================================================================#
-
 @Client.on_message(filters.command('unauthorize') & filters.private)
 async def remove_admin_command(client: Client, message: Message):
     if message.from_user.id != OWNER_ID:
         return await message.reply_text("Only Owner can use this command...!")
 
     if len(message.command) != 2:
-        return await message.reply_text("<b>You're using wrong format do like this:</b> /unauthorize <userid>")
+        return await message.reply_text("<b>You're using wrong format. Use:</b> /unauthorize <userid>")
 
     try:
         user_id_to_remove = int(message.command[1])
@@ -132,25 +131,35 @@ async def remove_admin_command(client: Client, message: Message):
         return await message.reply_text(f"Error fetching user information: {e}")
 
     if await client.mongodb.is_pro(user_id_to_remove):
+        # Remove from DB
         await client.mongodb.remove_pro(user_id_to_remove)
-        await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} has been removed from pro users...!</b>")
-    try:
-        await client.send_message(
-            user_id_to_remove,
-            "<b>Your membership has ended. 💔</b>\n\n"
-            "<blockquote expandable>"
-            "💰 <b>Affordable Pricing:</b>\n"
-            "○ <b>7 Days:</b> <code>INR 40</code>\n"
-            "○ <b>1 Month:</b> <code>INR 100</code>\n"
-            "○ <b>3 Months:</b> <code>INR 200</code>\n\n"
-            "<b>Ready to Upgrade? 💓</b>\n"
-            "<b>»</b> Message @Cultured_Alliance_probot"
-            "</blockquote>"
+
+        # Confirm to owner
+        await message.reply_text(
+            f"<b>User {user_name} ({user_id_to_remove}) has been removed from pro users.</b>"
         )
-    except Exception as e:
-        await message.reply_text(f"Failed to notify the user: {e}")
+
+        # Notify user
+        try:
+            await client.send_message(
+                user_id_to_remove,
+                "<b>Your membership has ended. 💔</b>\n\n"
+                "<blockquote expandable>\n"
+                "💰 <b>Affordable Pricing:</b>\n"
+                "○ <b>7 Days:</b> <code>INR 40</code>\n"
+                "○ <b>1 Month:</b> <code>INR 100</code>\n"
+                "○ <b>3 Months:</b> <code>INR 200</code>\n\n"
+                "<b>Ready to Upgrade? 💓</b>\n"
+                "<b>»</b> Message @Cultured_Alliance_probot\n"
+                "</blockquote>"
+            )
+        except Exception as e:
+            await message.reply_text(f"⚠️ Failed to notify user: {e}")
     else:
-        await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} is not a pro user or was not found in the pro list.</b>")
+        await message.reply_text(
+            f"<b>User {user_name} ({user_id_to_remove}) is not a pro user or was not found in the pro list.</b>"
+        )
+
 
 #========================================================================#
 @Client.on_message(filters.command('authorized') & filters.private)
@@ -177,6 +186,7 @@ async def admin_list_command(client: Client, message: Message):
         )
     else:
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
 
