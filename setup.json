@@ -1,13 +1,13 @@
 [
     {
-        "session": "yumeko",
-        "token": "7979235315:AAEHhY9_NeAsBK3caFlqAZmuasNSLJBTReg",
+        "session": "fubuki1",
+        "token": "7143290753:AAGRPxIFxkGTELRnbyQsXZ4qWf6j054VNbQ",
         "api_id": "27108998",
         "api_hash": "f4fc03493766db361d7e85ed8974fe2f",
         "workers": 8,
-        "db_uri": "mongodb+srv://Hunters:Hunters@cluster0.hbjssvk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-        "db_name": "Hunters",
-        "fsubs": [[-1002011314382, false, 10]],
+        "db_uri": "mongodb+srv://narutokilluaa:fubuki@cluster0.h2znxk4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+        "db_name": "filesharexbot",
+        "fsubs": [[-1002488234236, false, 5]],
         "db": -1002011314382,
         "auto_del": 600,
         "messages": {
@@ -24,4 +24,5 @@
         "protect": false
     }
 ]
+
 
