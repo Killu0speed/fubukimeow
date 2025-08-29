@@ -8,7 +8,7 @@ from plugins.shortner import get_short, total_click
 #===============================================================#
 
 # ✅ define message format (since you removed SHORT_MSG from setup.json)
-SHORT_MSG = "Total clicks :- {total_count}\nHere is your link 👇"
+SHORT_MSG = "Total clicks :-  {total_count}, Here is your link👇"
 
 
 @Client.on_message(filters.command('start') & filters.private)
