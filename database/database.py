@@ -9,6 +9,10 @@ from motor.motor_asyncio import AsyncIOMotorClient
 with open("setup.json", "r") as f:
     config = json.load(f)
 
+# Handle both dict and list formats
+if isinstance(config, list):
+    config = config[0]
+
 MONGO_URI = config.get("db_uri")
 DB_NAME = config.get("db_name", "filesharexbot")
 
