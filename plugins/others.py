@@ -103,9 +103,9 @@ async def unban(client: Client, message: Message):
 #==========================================================================#                
 #==========================================================================#        
 
-@Client.on_callback_query(filters.regex('^premium$'))
+@Client.on_callback_query(filters.regex("^premium$"))
 async def premium(client: Client, query: CallbackQuery):
-    await query.message.edit_text(
+    await query.message.reply_text(
         text=(
             "<b>✨ Exclusive Premium Membership ✨</b>\n"
             "<i>Unlock a World of Benefits Just for You!</i>\n\n"
@@ -118,25 +118,26 @@ async def premium(client: Client, query: CallbackQuery):
             "○ <b>7 Days:</b> <code>INR 40</code>\n"
             "○ <b>1 Month:</b> <code>INR 100</code>\n"
             "○ <b>3 Months:</b> <code>INR 200</code>\n\n"
-            "<b>Ready to Upgrade? 💓</b>\n"
+            "<b>Ready to Upgrade?</b>\n"
             "» Message @Cultured_Alliance_probot to get UPI or QR Code for payment.\n"
             "» Send a screenshot of your payment to @killua_og <i>(for Auto Verification)</i>.\n\n"
             "⚡ <b>Seats are LIMITED for Premium Members – Grab Yours Now!</b>"
         ),
         disable_web_page_preview=True,
-        reply_markup = InlineKeyboardMarkup(
+        reply_markup=InlineKeyboardMarkup(
             [
                 [
                     InlineKeyboardButton("🌐 Our Network", url="https://example.com"),
-                    InlineKeyboardButton("Go back", callback_data="back")
+                    InlineKeyboardButton("close", callback_data="close")
                 ]
             ]
         )
     )
-    return
+
 
 #==========================================================================#        
 @Client.on_callback_query(filters.regex("^back$"))
 async def back(client: Client, query: CallbackQuery):
     await query.message.edit_reply_markup(None)
+
 
