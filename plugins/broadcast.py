@@ -18,6 +18,7 @@ async def user_count(client, message):
     await message.reply(f"**{len(total_users)} Users are using this bot currently!**")
 
 #===============================================================#
+#===============================================================#
 
 @Client.on_message(filters.private & filters.command('broadcast'))
 async def send_text(client, message):
@@ -30,20 +31,20 @@ async def send_text(client, message):
     query = await client.mongodb.full_userbase()
     broadcast_msg = message.reply_to_message
 
-    # Control buttons
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("⏸ Pause", callback_data=f"pause_{message.id}"),
          InlineKeyboardButton("⏹ Stop", callback_data=f"stop_{message.id}")]
     ])
-    pls_wait = await message.reply("<blockquote><i>Broadcasting Message.. This will Take Some Time</i></blockquote>",
-                                   reply_markup=buttons)
+    pls_wait = await message.reply(
+        "<blockquote><i>Broadcasting Message.. This will Take Some Time</i></blockquote>",
+        reply_markup=buttons
+    )
 
     BROADCAST_STATUS[str(message.id)] = {"status": "running", "admin_id": message.from_user.id}
 
     total = successful = blocked = deleted = unsuccessful = 0
 
     for chat_id in query:
-        # Check status
         while BROADCAST_STATUS[str(message.id)]["status"] == "paused":
             await asyncio.sleep(2)
         if BROADCAST_STATUS[str(message.id)]["status"] == "stopped":
@@ -52,19 +53,23 @@ async def send_text(client, message):
         try:
             await broadcast_msg.copy(chat_id)
             successful += 1
+            print(f"{chat_id} broadcast message sent")  # ✅ log success
         except FloodWait as e:
             await asyncio.sleep(e.x)
             await broadcast_msg.copy(chat_id)
             successful += 1
+            print(f"{chat_id} broadcast message sent after FloodWait")
         except UserIsBlocked:
             await client.mongodb.del_user(chat_id)
             blocked += 1
+            print(f"{chat_id} is blocked")
         except InputUserDeactivated:
             await client.mongodb.del_user(chat_id)
             deleted += 1
+            print(f"{chat_id} account deleted")
         except Exception as e:
-            print(f"Failed to send message to {chat_id}: {e}")
             unsuccessful += 1
+            print(f"Failed to send message to {chat_id}: {e}")
         total += 1
 
     status = f"""<blockquote><b><u>Broadcast Finished</u></b></blockquote>
@@ -94,8 +99,10 @@ async def pin_bdcst_text(client, message):
         [InlineKeyboardButton("⏸ Pause", callback_data=f"pause_{message.id}"),
          InlineKeyboardButton("⏹ Stop", callback_data=f"stop_{message.id}")]
     ])
-    pls_wait = await message.reply("<blockquote><i>Broadcasting Message.. This will Take Some Time</i></blockquote>",
-                                   reply_markup=buttons)
+    pls_wait = await message.reply(
+        "<blockquote><i>Broadcasting Message.. This will Take Some Time</i></blockquote>",
+        reply_markup=buttons
+    )
 
     BROADCAST_STATUS[str(message.id)] = {"status": "running", "admin_id": message.from_user.id}
 
@@ -111,20 +118,24 @@ async def pin_bdcst_text(client, message):
             sent_msg = await broadcast_msg.copy(chat_id)
             successful += 1
             await client.pin_chat_message(chat_id=chat_id, message_id=sent_msg.id, both_sides=True)
+            print(f"{chat_id} broadcast & pinned message sent")
         except FloodWait as e:
             await asyncio.sleep(e.x)
             sent_msg = await broadcast_msg.copy(chat_id)
             successful += 1
             await client.pin_chat_message(chat_id=chat_id, message_id=sent_msg.id)
+            print(f"{chat_id} broadcast & pinned message sent after FloodWait")
         except UserIsBlocked:
             await client.mongodb.del_user(chat_id)
             blocked += 1
+            print(f"{chat_id} is blocked")
         except InputUserDeactivated:
             await client.mongodb.del_user(chat_id)
             deleted += 1
+            print(f"{chat_id} account deleted")
         except Exception as e:
-            print(f"Failed to send message to {chat_id}: {e}")
             unsuccessful += 1
+            print(f"Failed to send message to {chat_id}: {e}")
         total += 1
 
     status = f"""<blockquote><b><u>Broadcast Finished</u></b></blockquote>
