@@ -1,14 +1,17 @@
 from helper.helper_func import *
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-import humanize
+import humanize, asyncio
 from config import MSG_EFFECT, OWNER_ID
-from plugins.shortner import get_short, total_click
+from plugins.shortner import get_short
+from database.database import total_click, add_click
+from pyrogram.errors import FloodWait
+
 
 #===============================================================#
 
-# ✅ define message format (since you removed SHORT_MSG from setup.json)
-SHORT_MSG = "Total clicks :-  {total_count}, Here is your link👇"
+# ✅ message format
+SHORT_MSG = "Total clicks :- {total_count}, Here is your link👇"
 
 
 @Client.on_message(filters.command('start') & filters.private)
@@ -42,38 +45,39 @@ async def start_command(client: Client, message: Message):
 
         except IndexError:
             return await message.reply("Invalid command format.")
+
         # 3. Check premium status
         is_user_pro = await client.mongodb.is_pro(user_id)
 
-        
-        # 4. Check premium status
+        # 4. Handle non-pro users (force short link)
         if not is_user_pro and user_id != OWNER_ID and not is_short_link:
             try:
-                short_link = get_short(f"https://t.me/{client.username}?start=yu3elk{base64_string}7", client)
-                total_clicks = await total_click(base64_string)   # ✅ calculate clicks
+                short_link = get_short(
+                    f"https://t.me/{client.username}?start=yu3elk{base64_string}7",
+                    client
+                )
+                # ✅ record click + fetch total
+                await add_click(user_id, base64_string)
+                total_clicks = await total_click(base64_string)
             except Exception as e:
                 client.LOGGER(__name__, client.name).warning(f"Shortener failed: {e}")
                 return await message.reply("Couldn't generate short link.")
-        
-        
-            # ✅ buttons like your snippet
+
             buttons = [
                 [
                     InlineKeyboardButton(text="Short Link", url=short_link),
                     InlineKeyboardButton(text="Tutorial", url="https://t.me/tutorials_hanime/9"),
                 ],
-                [
-                    InlineKeyboardButton(text="Premium 💸", callback_data="premium")
-                ]
+                [InlineKeyboardButton(text="Premium 💸", callback_data="premium")]
             ]
-        
+
             await message.reply(
                 text=SHORT_MSG.format(total_count=total_clicks),
                 reply_markup=InlineKeyboardMarkup(buttons),
                 quote=True,
                 disable_web_page_preview=True
             )
-            return # prevent sending actual files
+            return  # prevent sending actual files
 
         # 5. Decode and prepare file IDs
         try:
@@ -95,8 +99,6 @@ async def start_command(client: Client, message: Message):
 
         # 6. Get messages and forward
         temp_msg = await message.reply("Wait A Sec..")
-        messages = []
-
         try:
             messages = await get_messages(client, ids)
         except Exception as e:
@@ -139,6 +141,9 @@ async def start_command(client: Client, message: Message):
                 client.LOGGER(__name__, client.name).warning(f"Failed to send message: {e}")
                 pass
 
+        # ✅ record click when file actually delivered
+        await add_click(user_id, base64_string)
+
         # 7. Auto delete timer
         if messages and client.auto_del > 0:
             k = await client.send_message(
@@ -179,6 +184,7 @@ async def start_command(client: Client, message: Message):
                 reply_markup=InlineKeyboardMarkup(buttons)
             )
         return
+
 
 #===============================================================#
 
