@@ -38,8 +38,11 @@ async def start_command(client: Client, message: Message):
 
         except IndexError:
             return await message.reply("Invalid command format.")
-
         # 3. Check premium status
+        is_user_pro = await client.mongodb.is_pro(user_id)
+
+        
+        # 4. Check premium status
         if not is_user_pro and user_id != OWNER_ID and not is_short_link:
             try:
                 short_link = get_short(f"https://t.me/{client.username}?start=yu3elk{base64_string}7", client)
