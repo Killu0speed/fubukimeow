@@ -248,7 +248,7 @@ async def my_plan(client: Client, message: Message):
     # Delete command message (like old version)
     await message.delete()
 
-    # Show wait message
+    # Show wait message (fixed)
     msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
 
     # Build profile text
@@ -268,7 +268,7 @@ async def my_plan(client: Client, message: Message):
     # If Free user → add Premium button
     if preference == "Enabled":
         reply_markup = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("Premium", callback_data="premium")]]
+            [[InlineKeyboardButton("Premium 💸", callback_data="premium")]]
         )
         await new_msg.edit_text(new_msg.text, reply_markup=reply_markup)
 
