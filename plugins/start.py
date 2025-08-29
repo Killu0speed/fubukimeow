@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 import humanize
 from config import MSG_EFFECT, OWNER_ID
-from plugins.shortner import get_short
+from plugins.shortner import get_short, total_click
 
 #===============================================================#
 
