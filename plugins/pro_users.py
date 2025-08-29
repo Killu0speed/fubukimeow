@@ -143,8 +143,8 @@ async def remove_admin_command(client: Client, message: Message):
         try:
             await client.send_message(
                 user_id_to_remove,
-                "<b>Your membership has ended. 💔</b>\n\n"
-                "<blockquote expandable>\n"
+                "<blockquote><b>Your membership has ended. 💔</b></blockquote>\n\n"
+                "<blockquote expandable>"
                 "💰 <b>Affordable Pricing:</b>\n"
                 "○ <b>7 Days:</b> <code>INR 40</code>\n"
                 "○ <b>1 Month:</b> <code>INR 100</code>\n"
@@ -186,6 +186,7 @@ async def admin_list_command(client: Client, message: Message):
         )
     else:
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
 
