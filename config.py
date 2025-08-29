@@ -2,11 +2,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 LOG_FILE_NAME = "bot.log"
-PORT = '5050'
+PORT = '8021'
 OWNER_ID = 5191566338
 MSG_EFFECT = 5046509860389126442
-SHORT_URL = "genzurl.com"
-SHORT_API = "3dd6b17b71bd35a37ca4a5546baa5e86958a4f00"
+SHORT_URL = "iskerts.com"
+SHORT_API = "a35699e71f8037e2a338d6ab99bb9abcb940d692"
 
 def LOGGER(name: str, client_name: str) -> logging.Logger:
     logger = logging.getLogger(name)
