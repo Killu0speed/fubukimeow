@@ -101,7 +101,7 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
         # Inform owner to run unauthorize
         await client.send_message(
             OWNER_ID,
-            f"⏰ Auto-expiry reached! /unauthorize {user_id}"
+            f"/unauthorize {user_id}"
         )
         # Or directly unauthorize if you want:
         # await unauthorize_function(client, user_id)
@@ -168,5 +168,6 @@ async def admin_list_command(client: Client, message: Message):
     else:
 
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
