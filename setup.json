@@ -1,27 +1,27 @@
 [
     {
         "session": "yumeko",
-        "token": "7165211818:AAHp6Y3xr9qjW5gPJa1RZdDGcoWptkj_fAQ",
-        "api_id": "11289522",
-        "api_hash": "4d108545f540f47e1ebdb1715f672579",
+        "token": "7979235315:AAEHhY9_NeAsBK3caFlqAZmuasNSLJBTReg",
+        "api_id": "27108998",
+        "api_hash": "f4fc03493766db361d7e85ed8974fe2f",
         "workers": 8,
         "db_uri": "mongodb+srv://Hunters:Hunters@cluster0.hbjssvk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
         "db_name": "Hunters",
-        "fsubs": [[-1002111055692, false, 10]],
-        "db": -1002012154025,
+        "fsubs": [[-1002011314382, false, 10]],
+        "db": -1002011314382,
         "auto_del": 600,
         "messages": {
-            "START": "<b>Hi There... {mention}! 💥\n\nI am a file-store bot.\nI can generate links directly with no problems\nMy Owner: @Okabe_xRintarou</b>",
-            "FSUB": "Hello There..!⚡\n\n🫧Please join both of our channels first then try again...!",
-            "ABOUT": "<b><i>About Us..\n\n‣ Made for : Anime x Hunters\n‣ Owner : @Its_Sahil_Ansari\n‣ Worked For : @Hunters_Association\n‣ Developer : @The_Seishiro_Nagi\n\n Adios !!</i></b>",
-            "REPLY": "<b>For More Join - @Cultured_Nation</b>",
-            "SHORT_MSG": "<b><i>Your Link is Ready! 👇\n\nFor any error contact: @Izana_Sensei</i></b>",
-            "START_PHOTO": "https://graph.org/file/276d8ba0a6eabcbd9a364.jpg",
-            "FSUB_PHOTO": "https://graph.org/file/d36946b4d1b2e77eab1d5.jpg",
-            "SHORT_PIC": "https://telegra.ph/file/01931b3b602e976c11717-9778b16fd120f8ec11.jpg"
+            "START": "Hey there! {first},\n\nI'm Fubuki, your friendly Link Manager Bot. I'm the go-to bot for managing all the links in the <a href=https://t.me/culturedx_alliance>Cultured Alliance</a>. And you know what's cool? I am owned by the one and only <a href=https://t.me/killua_og>Killua</a> !!",
+            "FSUB": "<b>To continue, please join the channel before and click the reload button below⚡</b>",
+            "ABOUT": "<b>1. First Join the channel \n2. Tap on Original link again or Reload ⚡️\n3. Tap on Start and Done ✅.</b>",
+            "REPLY": "<b>Join @Culturedx_Alliance!! Thank You🥰</b>",
+            "START_PHOTO": "",
+            "FSUB_PHOTO": "",
+            "SHORT_PIC": ""
         },
-        "admins": [7493303801],
+        "admins": [5191566338],
         "disable_btn": true,
         "protect": false
     }
 ]
+
