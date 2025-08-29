@@ -113,22 +113,22 @@ async def premium(client: Client, query: CallbackQuery):
             "✔️ <i>Direct Channel Links – No Ads, No Distractions!</i>\n"
             "✔️ <i>Special Access to Exclusive Events & Content</i>\n"
             "✔️ <i>Faster Support & Priority Assistance</i>\n\n"
-            "<b>💭 Plus:</b> You'll get <b>direct access to these channels</b> with any of these plans!\n\n"
+            "<b>💭 Plus:</b> You'll get <b>direct access to all the channels</b> with any of these plans!\n\n"
             "<b>💰 Affordable Pricing:</b>\n"
             "○ <b>7 Days:</b> <code>INR 40</code>\n"
             "○ <b>1 Month:</b> <code>INR 100</code>\n"
             "○ <b>3 Months:</b> <code>INR 200</code>\n\n"
             "<b>Ready to Upgrade?</b>\n"
             "» Message @Cultured_Alliance_probot to get UPI or QR Code for payment.\n"
-            "» Send a screenshot of your payment to @killua_og <i>(for Auto Verification)</i>.\n\n"
+            "» Send a screenshot of your payment to @Cultured_Alliance_probot <i>(for Auto Verification)</i>.\n\n"
             "⚡ <b>Seats are LIMITED for Premium Members – Grab Yours Now!</b>"
         ),
         disable_web_page_preview=True,
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("🌐 Our Network", url="https://example.com"),
-                    InlineKeyboardButton("close", callback_data="close")
+                    InlineKeyboardButton("⚡ ᴄᴜʟᴛᴜʀᴇᴅ ᴀʟʟɪᴀɴᴄᴇ", url="https://t.me/culturedx_alliance"),
+                    InlineKeyboardButton("🍁 ᴄʟᴏꜱᴇ", callback_data="close")
                 ]
             ]
         )
@@ -139,5 +139,6 @@ async def premium(client: Client, query: CallbackQuery):
 @Client.on_callback_query(filters.regex("^back$"))
 async def back(client: Client, query: CallbackQuery):
     await query.message.edit_reply_markup(None)
+
 
 
