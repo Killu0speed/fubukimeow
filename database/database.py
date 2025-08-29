@@ -25,7 +25,7 @@ db = dbclient[DB_NAME]
 # Collections
 user_data = db["users"]
 premium_users = db["pros"]
-clicks = db["clicks"]
+clicks = db["click"]
 
 
 async def add_click(user_id: int, base64_string: str):
