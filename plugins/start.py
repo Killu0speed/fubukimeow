@@ -7,6 +7,10 @@ from plugins.shortner import get_short
 
 #===============================================================#
 
+# ✅ define message format (since you removed SHORT_MSG from setup.json)
+SHORT_MSG = "Total clicks :- {total_count}\nHere is your link 👇"
+
+
 @Client.on_message(filters.command('start') & filters.private)
 @force_sub
 async def start_command(client: Client, message: Message):
@@ -51,8 +55,6 @@ async def start_command(client: Client, message: Message):
                 client.LOGGER(__name__, client.name).warning(f"Shortener failed: {e}")
                 return await message.reply("Couldn't generate short link.")
         
-            # ✅ define message format (since you removed SHORT_MSG from setup.json)
-            SHORT_MSG = "Total clicks :- {total_count}\nHere is your link 👇"
         
             # ✅ buttons like your snippet
             buttons = [
