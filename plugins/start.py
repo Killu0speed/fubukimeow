@@ -180,66 +180,90 @@ async def start_command(client: Client, message: Message):
 @Client.on_message(filters.command('request') & filters.private)
 async def request_command(client: Client, message: Message):
     user_id = message.from_user.id
-    is_admin = user_id in client.admins  # ✅ Fix this line
-    is_user_premium = await client.mongodb.is_pro(user_id)
+    is_admin = user_id in client.admins  # ✅ admin check
+    is_user_premium = await client.mongodb.is_pro(user_id)  # ✅ new DB check
 
+    # Sensei/admin bypass
     if is_admin or user_id == OWNER_ID:
-        await message.reply_text("🔹 **You are my sensei!**\nThis command is only for users.")
+        await message.reply_text("🔹 You're my sensei! This command is only for users.")
         return
 
-    if not is_user_premium: 
-        BUTTON_URL = "https://t.me/Cultured_Nation/5"
-        reply_markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton("💎 Upgrade to Premium", url=BUTTON_URL)]
-        ])
+    # Free user → callback Premium button (like old version)
+    if not is_user_premium:   
+        inline_button = InlineKeyboardButton("Upgrade to Premium", callback_data="premium")
+        inline_keyboard = InlineKeyboardMarkup([[inline_button]])
+
         await message.reply(
-            "❌ **You are not a premium user.**\nUpgrade to premium to access this feature.",
-            reply_markup=reply_markup
+            "You are not a premium user. Upgrade to premium to access this feature.",
+            reply_markup=inline_keyboard
         )
         return
 
+    # Format check
     if len(message.command) < 2:
-        await message.reply("⚠️ **Send me your request in this format:**\n`/request Your_Request_Here`")
+        await message.reply("Send me your request in this format: /request hentai Name Quality Episode")
         return
 
     requested = " ".join(message.command[1:])
 
+    # Owner notification (like old)
     owner_message = (
-        f"📩 **New Request from {message.from_user.mention}**\n\n"
-        f"🆔 User ID: `{user_id}`\n"
-        f"📝 Request: `{requested}`"
+        f"{message.from_user.first_name} ({message.from_user.id})\n\n"
+        f"uplaod karo:- {requested}"
     )
-
     await client.send_message(OWNER_ID, owner_message)
-    await message.reply("✅ **Thanks for your request!**\nYour request will be reviewed soon. Please wait.")
+
+    # User confirmation (like old)
+    await message.reply("Thanks for your request! Your request will be uploaded soon. Please wait.")
+
 
 #===============================================================#
 
 @Client.on_message(filters.command('profile') & filters.private)
 async def my_plan(client: Client, message: Message):
     user_id = message.from_user.id
-    is_admin = user_id in client.admins  # ✅ Fix here
+    is_admin = user_id in client.admins  # ✅ admin check
 
+    # Sensei/admin bypass
     if is_admin or user_id == OWNER_ID:
         await message.reply_text("🔹 You're my sensei! This command is only for users.")
         return
-    
+
+    # ✅ Use new DB method for premium check
     is_user_premium = await client.mongodb.is_pro(user_id)
 
-    if is_user_premium:
-        await message.reply_text(
-            "**👤 Profile Information:**\n\n"
-            "🔸 Ads: Disabled\n"
-            "🔸 Plan: Premium\n"
-            "🔸 Request: Enabled\n\n"
-            "🌟 You're a Premium User!"
-        )
+    # ✅ Same logic as old version
+    if not is_user_premium and user_id != OWNER_ID:
+        preference = "Enabled"   # Ads ON
+        absence = "Disabled"     # Features OFF
     else:
-        await message.reply_text(
-            "**👤 Profile Information:**\n\n"
-            "🔸 Ads: Enabled\n"
-            "🔸 Plan: Free\n"
-            "🔸 Request: Disabled\n\n"
-            "🔓 Unlock Premium to get more benefits\n"
-            "Contact: @Izana_Sensei"
+        preference = "Disabled"  # Ads OFF
+        absence = "Enabled"      # Features ON
+
+    # Delete command message (like old version)
+    await message.delete()
+
+    # Show wait message
+    msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
+
+    # Build profile text
+    new_msg_text = (
+        f"Name: {message.from_user.first_name}\n\n"
+        f"Ad Link: {preference}\n"
+        f"Direct Links: {absence}\n"
+        f"On-Demand Hentai: {absence}"
+    )
+
+    if preference == "Disabled":
+        new_msg_text += "\n\n🌟 You are a Pro User 🌟"
+
+    # Edit wait message with profile
+    new_msg = await msg.edit_text(new_msg_text)
+
+    # If Free user → add Premium button
+    if preference == "Enabled":
+        reply_markup = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("Premium", callback_data="premium")]]
         )
+        await new_msg.edit_text(new_msg.text, reply_markup=reply_markup)
+
