@@ -7,17 +7,10 @@ from config import OWNER_ID
 #========================================================================#
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import asyncio
-
-# Example plans (days : (label, price))
-from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import asyncio
 from config import OWNER_ID   # using your config import
 
 # Example plans (key: (label, price, duration_in_seconds))
-PLANS = {
-    "1min": ("1 Minute (Test)", 0, 60),            # test plan
+PLANS = {        # test plan
     "7d": ("7 Days", 40, 7 * 24 * 60 * 60),
     "1m": ("1 Month", 100, 30 * 24 * 60 * 60),
     "3m": ("3 Months", 200, 90 * 24 * 60 * 60),
@@ -41,13 +34,18 @@ async def add_admin_command(client: Client, message: Message):
     except Exception as e:
         return await message.reply_text(f"Error: {e}")
 
+    # Check if already pro
+    if await client.mongodb.is_pro(user_id_to_add):
+        return await message.reply_text(
+            f"<b>User {user_name} - {user_id_to_add} is already a pro user.</b>"
+        )
+
     # Save context temporarily
     client.temp_auth = {"user_id": user_id_to_add, "user_name": user_name}
 
     # Inline buttons in horizontal layout
     buttons = [
         [
-            InlineKeyboardButton("🕐 1 Min", callback_data="plan_1min"),
             InlineKeyboardButton("7 Days", callback_data="plan_7d"),
             InlineKeyboardButton("1 Month", callback_data="plan_1m"),
             InlineKeyboardButton("3 Months", callback_data="plan_3m"),
@@ -73,7 +71,7 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
     user_id = client.temp_auth["user_id"]
     user_name = client.temp_auth["user_name"]
 
-    plan_name, price, duration_seconds = PLANS[plan_key]
+    plan_name, price, _ = PLANS[plan_key]
 
     # Add to DB
     if not await client.mongodb.is_pro(user_id):
@@ -92,22 +90,6 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
         )
     except Exception as e:
         await query.message.reply_text(f"Failed to notify user: {e}")
-
-    # -----------------------
-    # STEP 3: AUTO UNAOTHORIZE AFTER EXPIRY
-    # -----------------------
-    async def auto_expire():
-        await asyncio.sleep(duration_seconds)
-        # Inform owner to run unauthorize
-        await client.send_message(
-            OWNER_ID,
-            f"/unauthorize {user_id}"
-        )
-        # Or directly unauthorize if you want:
-        # await unauthorize_function(client, user_id)
-
-    asyncio.create_task(auto_expire())
-
 
 
 #========================================================================#
@@ -168,6 +150,7 @@ async def admin_list_command(client: Client, message: Message):
     else:
 
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
 
