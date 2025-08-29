@@ -10,12 +10,18 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 import asyncio
 
 # Example plans (days : (label, price))
+from pyrogram import Client, filters
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+import asyncio
+from config import OWNER_ID   # using your config import
+
+# Example plans (key: (label, price, duration_in_seconds))
 PLANS = {
+    "1min": ("1 Minute (Test)", 0, 60),            # test plan
     "7d": ("7 Days", 40, 7 * 24 * 60 * 60),
     "1m": ("1 Month", 100, 30 * 24 * 60 * 60),
     "3m": ("3 Months", 200, 90 * 24 * 60 * 60),
 }
-
 
 # -----------------------
 # STEP 1: AUTHORIZE COMMAND
@@ -38,12 +44,14 @@ async def add_admin_command(client: Client, message: Message):
     # Save context temporarily
     client.temp_auth = {"user_id": user_id_to_add, "user_name": user_name}
 
-    # Ask admin to choose plan
+    # Inline buttons in horizontal layout
     buttons = [
-        [InlineKeyboardButton("7 Days", callback_data="plan_7d")],
-        [InlineKeyboardButton("1 Month", callback_data="plan_1m")],
-        [InlineKeyboardButton("3 Months", callback_data="plan_3m")],
-        # You can add [InlineKeyboardButton("Custom", callback_data="plan_custom")] here
+        [
+            InlineKeyboardButton("🕐 1 Min", callback_data="plan_1min"),
+            InlineKeyboardButton("7 Days", callback_data="plan_7d"),
+            InlineKeyboardButton("1 Month", callback_data="plan_1m"),
+            InlineKeyboardButton("3 Months", callback_data="plan_3m"),
+        ]
     ]
     await message.reply_text(
         f"Select a plan for <b>{user_name}</b> ({user_id_to_add}):",
@@ -90,13 +98,16 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
     # -----------------------
     async def auto_expire():
         await asyncio.sleep(duration_seconds)
-        # Call unauthorize command
-        owner_msg = f"/unauthorize {user_id}"
-        await client.send_message(OWNER_ID, f"⏰ Auto-expiry reached! {owner_msg}")
+        # Inform owner to run unauthorize
+        await client.send_message(
+            OWNER_ID,
+            f"⏰ Auto-expiry reached! /unauthorize {user_id}"
+        )
         # Or directly unauthorize if you want:
         # await unauthorize_function(client, user_id)
 
     asyncio.create_task(auto_expire())
+
 
 
 #========================================================================#
@@ -157,4 +168,5 @@ async def admin_list_command(client: Client, message: Message):
     else:
 
         await message.reply_text("<b>No admin users found.</b>")
+
 
