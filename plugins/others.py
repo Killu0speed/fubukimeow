@@ -136,35 +136,6 @@ async def premium(client: Client, query: CallbackQuery):
     return
 
 #==========================================================================#        
-
-from pyrogram.types import CallbackQuery
-
 @Client.on_callback_query(filters.regex("^back$"))
 async def back(client: Client, query: CallbackQuery):
-    user_id = query.from_user.id
-    is_user_premium = await client.mongodb.is_pro(user_id)
-
-    # Rebuild the profile text
-    if is_user_premium:
-        new_msg_text = (
-            f"Name: {query.from_user.first_name}\n\n"
-            "Ad Link: Disabled\n"
-            "Direct Links: Enabled\n"
-            "On-Demand Hentai: Enabled\n\n"
-            "You are a Pro User"
-        )
-        await query.message.edit_text(new_msg_text)
-
-    else:
-        new_msg_text = (
-            f"Name: {query.from_user.first_name}\n\n"
-            "Ad Link: Enabled\n"
-            "Direct Links: Disabled\n"
-            "On-Demand Hentai: Disabled"
-        )
-        reply_markup = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("Premium", callback_data="premium")]]
-        )
-        await query.message.edit_text(new_msg_text, reply_markup=reply_markup)
-
-
+    await query.message.edit_reply_markup(None)
