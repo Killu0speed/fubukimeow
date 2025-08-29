@@ -129,6 +129,7 @@ async def remove_admin_command(client: Client, message: Message):
     except Exception as e:
         return await message.reply_text(f"Error fetching user information: {e}")
 
+    # ✅ Check if user is pro
     if await client.mongodb.is_pro(user_id_to_remove):
         # Remove from DB
         await client.mongodb.remove_pro(user_id_to_remove)
@@ -152,17 +153,16 @@ async def remove_admin_command(client: Client, message: Message):
                 "<b>»</b> Message @Cultured_Alliance_probot\n"
                 "</blockquote>",
                 reply_markup=InlineKeyboardMarkup(
-                    [
-                        [InlineKeyboardButton("Buy premium again! 💸", url="https://t.me/Cultured_Alliance_probot")]
-                    ]
+                    [[InlineKeyboardButton("Buy premium again! 💸", url="https://t.me/Cultured_Alliance_probot")]]
                 )
             )
         except Exception as e:
             await message.reply_text(f"⚠️ Failed to notify user: {e}")
-        else:
-            await message.reply_text(
-                f"<b>User {user_name} ({user_id_to_remove}) is not a pro user or was not found in the pro list.</b>"
-            )
+    else:
+        # ❌ Only runs if user is not in pro list
+        await message.reply_text(
+            f"<b>User {user_name} ({user_id_to_remove}) is not a pro user or was not found in the pro list.</b>"
+        )
 
 
 #========================================================================#
@@ -190,6 +190,7 @@ async def admin_list_command(client: Client, message: Message):
         )
     else:
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
 
