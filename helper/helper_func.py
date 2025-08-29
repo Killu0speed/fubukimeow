@@ -159,6 +159,8 @@ def force_sub(func):
     async def wrapper(client: Client, message: Message):
         if not client.fsub_dict:
             return await func(client, message)
+
+        # Show initial "checking" message
         photo = client.messages.get('FSUB_PHOTO', '')
         if photo:
             msg = await message.reply_photo(
@@ -169,47 +171,52 @@ def force_sub(func):
             msg = await message.reply(
                 "<code>Checking subscription...</code>"
             )
+
         user_id = message.from_user.id
         statuses = await check_subscription(client, user_id)
 
+        # If already subscribed to all channels
         if is_user_subscribed(statuses):
             await msg.delete()
             return await func(client, message)
 
         # User is not subscribed to all channels
         buttons = []
-        channels_message = f"{client.messages.get('FSUB', '')}\n\n<b>Channel Subscription Status:</b>\n\n"
+        channels_message = (
+            f"{client.messages.get('FSUB', '')}"
+        )
 
         c = 0
         for channel_id, (channel_name, channel_link, request, timer) in client.fsub_dict.items():
             status = statuses.get(channel_id, None)
-            status_of_user = "Jᴏɪɴᴇᴅ ✅" if status in {ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER} else "Nᴏᴛ Jᴏɪɴᴇᴅ ❌"
-            c += 1
-            channels_message += f"{c}. <code>{channel_name}</code> - <b>{status_of_user}</b>\n"
-
-            if timer > 0:
-                expire_time = datetime.now() + timedelta(minutes=timer)
-                invite = await client.create_chat_invite_link(
-                    chat_id=channel_id,
-                    expire_date=expire_time,
-                    creates_join_request=request
-                )
-                channel_link = invite.invite_link
-
+            # Only add button if user is NOT subscribed
             if status not in {ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER}:
-                buttons.append(InlineKeyboardButton(channel_name, url=channel_link))
+                c += 1
+                # Create a temporary invite link if timer is set
+                if timer > 0:
+                    expire_time = datetime.now() + timedelta(minutes=timer)
+                    invite = await client.create_chat_invite_link(
+                        chat_id=channel_id,
+                        expire_date=expire_time,
+                        creates_join_request=request
+                    )
+                    channel_link = invite.invite_link
+                # Add numbered join button
+                buttons.append(
+                    InlineKeyboardButton(f"ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ {c}", url=channel_link)
+                )
 
         # Add "Try Again" button if needed
         from_link = message.text.split(" ")
         if len(from_link) > 1:
             try_again_link = f"https://t.me/{client.username}/?start={from_link[1]}"
-            buttons.append(InlineKeyboardButton("Try Again", url=try_again_link))
+            buttons.append(InlineKeyboardButton("ᴛʀʏ ᴀɢᴀɪɴ! ⚡", url=try_again_link))
 
         # Organize buttons in rows of 2
         buttons_markup = InlineKeyboardMarkup([buttons[i:i + 2] for i in range(0, len(buttons), 2)])
         buttons_markup = None if not buttons else buttons_markup
 
-        # Edit message with status update and buttons
+        # Edit the original "checking" message with the subscription prompt
         try:
             await msg.edit_text(text=channels_message, reply_markup=buttons_markup)
         except Exception as e:
