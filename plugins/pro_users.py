@@ -91,8 +91,8 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
     # Add user to pro DB
     await client.mongodb.add_pro(user_id)
 
-    # Remove buttons
-    await query.message.edit_reply_markup(reply_markup=None)
+    # Remove the "Select a plan..." message completely
+    await query.message.delete()
 
     # Confirmation to owner
     await query.message.reply_text(
@@ -107,7 +107,6 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
         )
     except Exception as e:
         await query.message.reply_text(f"⚠️ Couldn’t notify user: {e}")
-
 
 
 #========================================================================#
