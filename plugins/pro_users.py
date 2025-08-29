@@ -20,7 +20,7 @@ async def add_admin_command(client: Client, message: Message):
         return await message.reply_text("Only Owner can use this command...!")
 
     if len(message.command) < 2:
-        return await message.reply_text("<b>Format:</b> /authorize <userid> [plan]")
+        return await message.reply_text("<b>ese use karo sir 🙂</b> /authorize userid")
 
     try:
         user_id_to_add = int(message.command[1])
@@ -113,10 +113,10 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
 @Client.on_message(filters.command('unauthorize') & filters.private)
 async def remove_admin_command(client: Client, message: Message):
     if message.from_user.id != OWNER_ID:
-        return await message.reply_text("Only Owner can use this command...!")
+        return await message.reply_text("Baka! Only Owner Can Use this command..")
 
     if len(message.command) != 2:
-        return await message.reply_text("<b>You're using wrong format. Use:</b> /unauthorize <userid>")
+        return await message.reply_text("<b>ese use karo sir 🙂</b> /unauthorize userid")
 
     try:
         user_id_to_remove = int(message.command[1])
@@ -190,6 +190,7 @@ async def admin_list_command(client: Client, message: Message):
         )
     else:
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
 
