@@ -227,48 +227,28 @@ async def request_command(client: Client, message: Message):
 @Client.on_message(filters.command('profile') & filters.private)
 async def my_plan(client: Client, message: Message):
     user_id = message.from_user.id
-    is_admin = user_id in client.admins  # ✅ admin check
+    is_admin = user_id in client.admins  # ✅ Fix here
 
-    # Sensei/admin bypass
     if is_admin or user_id == OWNER_ID:
         await message.reply_text("🔹 You're my sensei! This command is only for users.")
         return
-
-    # ✅ Use new DB method for premium check
+    
     is_user_premium = await client.mongodb.is_pro(user_id)
 
-    # ✅ Same logic as old version
-    if not is_user_premium and user_id != OWNER_ID:
-        preference = "Enabled"   # Ads ON
-        absence = "Disabled"     # Features OFF
-    else:
-        preference = "Disabled"  # Ads OFF
-        absence = "Enabled"      # Features ON
-
-    # Delete command message (like old version)
-    await message.delete()
-
-    # Show wait message (fixed)
-    msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
-
-    # Build profile text
-    new_msg_text = (
-        f"Name: {message.from_user.first_name}\n\n"
-        f"Ad Link: {preference}\n"
-        f"Direct Links: {absence}\n"
-        f"On-Demand Hentai: {absence}"
-    )
-
-    if preference == "Disabled":
-        new_msg_text += "\n\n🌟 You are a Pro User 🌟"
-
-    # Edit wait message with profile
-    new_msg = await msg.edit_text(new_msg_text)
-
-    # If Free user → add Premium button
-    if preference == "Enabled":
-        reply_markup = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("Premium 💸", callback_data="premium")]]
+    if is_user_premium:
+        await message.reply_text(
+            "**👤 Profile Information:**\n\n"
+            "🔸 Ads: Disabled\n"
+            "🔸 Plan: Premium\n"
+            "🔸 Request: Enabled\n\n"
+            "🌟 You're a Premium User!"
         )
-        await new_msg.edit_text(new_msg.text, reply_markup=reply_markup)
-
+    else:
+        await message.reply_text(
+            "**👤 Profile Information:**\n\n"
+            "🔸 Ads: Enabled\n"
+            "🔸 Plan: Free\n"
+            "🔸 Request: Disabled\n\n"
+            "🔓 Unlock Premium to get more benefits\n"
+            "Contact: @Izana_Sensei"
+        )
