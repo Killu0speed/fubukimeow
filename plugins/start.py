@@ -206,7 +206,7 @@ async def request_command(client: Client, message: Message):
 
     # Format check
     if len(message.command) < 2:
-        await message.reply("Send me your request in this format: /request hentai Name Quality Episode")
+        await message.reply("Send me your request in this format: /request hntai Name Quality Episode")
         return
 
     requested = " ".join(message.command[1:])
