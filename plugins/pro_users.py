@@ -134,10 +134,21 @@ async def remove_admin_command(client: Client, message: Message):
     if await client.mongodb.is_pro(user_id_to_remove):
         await client.mongodb.remove_pro(user_id_to_remove)
         await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} has been removed from pro users...!</b>")
-        try:
-            await client.send_message(user_id_to_remove, "<b>You membership has been ended.\n\nTo renew the membership\nContact: @Izana_Sensei.</b>")
-        except Exception as e:
-            await message.reply_text(f"Failed to notify the user: {e}")
+    try:
+        await client.send_message(
+            user_id_to_remove,
+            "<b>Your membership has ended. 💔</b>\n\n"
+            "<blockquote expandable>"
+            "💰 <b>Affordable Pricing:</b>\n"
+            "○ <b>7 Days:</b> <code>INR 40</code>\n"
+            "○ <b>1 Month:</b> <code>INR 100</code>\n"
+            "○ <b>3 Months:</b> <code>INR 200</code>\n\n"
+            "<b>Ready to Upgrade? 💓</b>\n"
+            "<b>»</b> Message @Cultured_Alliance_probot"
+            "</blockquote>"
+        )
+    except Exception as e:
+        await message.reply_text(f"Failed to notify the user: {e}")
     else:
         await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} is not a pro user or was not found in the pro list.</b>")
 
@@ -166,6 +177,7 @@ async def admin_list_command(client: Client, message: Message):
         )
     else:
         await message.reply_text("<b>No admin users found.</b>")
+
 
 
 
