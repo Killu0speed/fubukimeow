@@ -16,7 +16,6 @@ PLANS = {
     "3m": ("3 Months", 200, 90 * 24 * 60 * 60),
 }
 
-OWNER_ID = 123456789  # replace with yours
 
 # -----------------------
 # STEP 1: AUTHORIZE COMMAND
@@ -158,3 +157,4 @@ async def admin_list_command(client: Client, message: Message):
     else:
 
         await message.reply_text("<b>No admin users found.</b>")
+
