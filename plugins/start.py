@@ -250,8 +250,8 @@ async def my_plan(client: Client, message: Message):
             f"Name: {message.from_user.first_name}\n\n"
             "Ad Link: Disabled\n"
             "Direct Links: Enabled\n"
-            "On-Demand Hentai: Enabled\n\n"
-            "You are a Pro User"
+            "Request: Enabled\n\n"
+            "\n\n🌟 You are a Pro User 🌟"
         )
         await wait_msg.edit_text(new_msg_text)
 
@@ -260,7 +260,7 @@ async def my_plan(client: Client, message: Message):
             f"Name: {message.from_user.first_name}\n\n"
             "Ad Link: Enabled\n"
             "Direct Links: Disabled\n"
-            "On-Demand Hentai: Disabled"
+            "Request: Disabled"
         )
         reply_markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton("Premium", callback_data="premium")]]
