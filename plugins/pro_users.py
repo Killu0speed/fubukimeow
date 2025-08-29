@@ -7,13 +7,20 @@ from config import OWNER_ID
 #========================================================================#
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+import asyncio
+
+# Example plans (days : (label, price))
+from pyrogram import Client, filters
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+import asyncio
 from config import OWNER_ID   # using your config import
 
-# Standard plans mapping
+# Example plans (key: (label, price, duration_in_seconds))
 PLANS = {
-    "7d": "7 Days",
-    "1m": "1 Month",
-    "3m": "3 Months",
+    "1min": ("1 Minute (Test)", 0, 60),            # test plan
+    "7d": ("7 Days", 40, 7 * 24 * 60 * 60),
+    "1m": ("1 Month", 100, 30 * 24 * 60 * 60),
+    "3m": ("3 Months", 200, 90 * 24 * 60 * 60),
 }
 
 # -----------------------
@@ -24,8 +31,8 @@ async def add_admin_command(client: Client, message: Message):
     if message.from_user.id != OWNER_ID:
         return await message.reply_text("Only Owner can use this command...!")
 
-    if len(message.command) < 2:
-        return await message.reply_text("<b>Format:</b> /authorize <userid> [plan]\n\nExample:\n/authorize 123456 1m")
+    if len(message.command) != 2:
+        return await message.reply_text("<b>Format:</b> /authorize <userid>")
 
     try:
         user_id_to_add = int(message.command[1])
@@ -34,52 +41,24 @@ async def add_admin_command(client: Client, message: Message):
     except Exception as e:
         return await message.reply_text(f"Error: {e}")
 
-    # Already pro check
-    if await client.mongodb.is_pro(user_id_to_add):
-        return await message.reply_text(
-            f"<b>User {user_name} - {user_id_to_add} is already a pro user.</b>"
-        )
 
-    # Case 1: Plan tenure is given directly in command
-    if len(message.command) == 3:
-        tenure = message.command[2].lower()
 
-        if tenure in PLANS:   # predefined plans
-            plan_name = PLANS[tenure]
-        else:
-            try:
-                months = int(tenure)
-                plan_name = f"{months} Month(s)"
-            except:
-                return await message.reply_text("Invalid plan tenure. Use 7d / 1m / 3m / <months>")
 
-        await client.mongodb.add_pro(user_id_to_add)
 
-        await message.reply_text(
-            f"<b>User {user_name} - {user_id_to_add} is now a pro user with {plan_name} plan..!</b>"
-        )
-        try:
-            await client.send_message(
-                user_id_to_add,
-                f"<b>🎉 Congratulations! Your membership has been activated for {plan_name}.</b>"
-            )
-        except Exception as e:
-            await message.reply_text(f"Failed to notify user: {e}")
 
-        return
 
-    # Case 2: No plan given → show selection buttons
+    # Save context temporarily
     client.temp_auth = {"user_id": user_id_to_add, "user_name": user_name}
 
+    # Inline buttons in horizontal layout
     buttons = [
         [
+            InlineKeyboardButton("🕐 1 Min", callback_data="plan_1min"),
             InlineKeyboardButton("7 Days", callback_data="plan_7d"),
             InlineKeyboardButton("1 Month", callback_data="plan_1m"),
             InlineKeyboardButton("3 Months", callback_data="plan_3m"),
-        ],
-        [InlineKeyboardButton("Custom Plan", callback_data="plan_custom")]
+        ]
     ]
-
     await message.reply_text(
         f"Select a plan for <b>{user_name}</b> ({user_id_to_add}):",
         reply_markup=InlineKeyboardMarkup(buttons)
@@ -93,21 +72,18 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
     if query.from_user.id != OWNER_ID:
         return await query.answer("Not for you!", show_alert=True)
 
-    user_id = client.temp_auth["user_id"]
-    user_name = client.temp_auth["user_name"]
     plan_key = query.data.split("_")[1]
-
-    if plan_key == "custom":
-        # Ask admin for custom months
-        client.temp_auth["waiting_for_months"] = True
-        return await query.message.edit_text("Enter number of months for this user:")
-
-    plan_name = PLANS.get(plan_key)
-    if not plan_name:
+    if plan_key not in PLANS:
         return await query.answer("Invalid plan!")
 
+    user_id = client.temp_auth["user_id"]
+    user_name = client.temp_auth["user_name"]
+
+    plan_name, price, duration_seconds = PLANS[plan_key]
+
     # Add to DB
-    await client.mongodb.add_pro(user_id)
+    if not await client.mongodb.is_pro(user_id):
+        await client.mongodb.add_pro(user_id)
 
     # Notify admin
     await query.message.edit_text(
@@ -123,67 +99,35 @@ async def handle_plan_selection(client: Client, query: CallbackQuery):
     except Exception as e:
         await query.message.reply_text(f"Failed to notify user: {e}")
 
-# -----------------------
-# STEP 3: Handle custom months reply
-# -----------------------
-@Client.on_message(filters.private)
-async def handle_custom_months(client: Client, message: Message):
-    # Only owner + only if waiting
-    if message.from_user.id != OWNER_ID:
-        return
-    if not getattr(client, "temp_auth", None):
-        return
-    if not client.temp_auth.get("waiting_for_months"):
-        return
-
-    try:
-        months = int(message.text.strip())
-    except:
-        return await message.reply_text("Please enter a valid number of months!")
-
-    user_id = client.temp_auth["user_id"]
-    user_name = client.temp_auth["user_name"]
-    plan_name = f"{months} Month(s)"
-
-    # clear state
-    client.temp_auth.pop("waiting_for_months", None)
-
-    # Add to DB
-    await client.mongodb.add_pro(user_id)
-
-    # Notify admin
-    await message.reply_text(
-        f"<b>User {user_name} - {user_id} is now a pro user with {plan_name} plan..!</b>"
-    )
-
-    # Notify user
-    try:
+    # -----------------------
+    # STEP 3: AUTO UNAOTHORIZE AFTER EXPIRY
+    # -----------------------
+    async def auto_expire():
+        await asyncio.sleep(duration_seconds)
+        # Inform owner to run unauthorize
         await client.send_message(
-            user_id,
-            f"<b>🎉 Congratulations! Your membership has been activated for {plan_name}.</b>"
+            OWNER_ID,
+            f"/unauthorize {user_id}"
         )
-    except Exception as e:
-        await message.reply_text(f"Failed to notify user: {e}")
+        # Or directly unauthorize if you want:
+        # await unauthorize_function(client, user_id)
+
+    asyncio.create_task(auto_expire())
 
 
 
 #========================================================================#
+
 @Client.on_message(filters.command('unauthorize') & filters.private)
 async def remove_admin_command(client: Client, message: Message):
-    print("DEBUG: /unauthorize triggered with:", message.text)
-
     if message.from_user.id != OWNER_ID:
-        print("DEBUG: Unauthorized user tried unauthorize:", message.from_user.id)
         return await message.reply_text("Only Owner can use this command...!")
-
-    print("DEBUG: message.command =", message.command)
 
     if len(message.command) != 2:
         return await message.reply_text("<b>You're using wrong format do like this:</b> /unauthorize <userid>")
 
     try:
         user_id_to_remove = int(message.command[1])
-        print("DEBUG: Parsed user_id_to_remove =", user_id_to_remove)
     except ValueError:
         return await message.reply_text("Invalid user ID. Please check again...!")
 
@@ -191,25 +135,17 @@ async def remove_admin_command(client: Client, message: Message):
         user = await client.get_users(user_id_to_remove)
         user_name = user.first_name + (" " + user.last_name if user.last_name else "")
     except Exception as e:
-        print("DEBUG: get_users failed:", e)
         return await message.reply_text(f"Error fetching user information: {e}")
 
-    try:
-        is_pro = await client.mongodb.is_pro(user_id_to_remove)
-        print("DEBUG: is_pro =", is_pro)
-        if is_pro:
-            await client.mongodb.remove_pro(user_id_to_remove)
-            await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} has been removed from pro users...!</b>")
-            try:
-                await client.send_message(user_id_to_remove, "<b>Your membership has ended.\n\nTo renew, contact: @Izana_Sensei.</b>")
-            except Exception as e:
-                print("DEBUG: Failed to notify user:", e)
-                await message.reply_text(f"Failed to notify the user: {e}")
-        else:
-            await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} is not a pro user or was not found in the pro list.</b>")
-    except Exception as e:
-        print("DEBUG: DB error:", e)
-        await message.reply_text(f"Error: {e}")
+    if await client.mongodb.is_pro(user_id_to_remove):
+        await client.mongodb.remove_pro(user_id_to_remove)
+        await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} has been removed from pro users...!</b>")
+        try:
+            await client.send_message(user_id_to_remove, "<b>You membership has been ended.\n\nTo renew the membership\nContact: @Izana_Sensei.</b>")
+        except Exception as e:
+            await message.reply_text(f"Failed to notify the user: {e}")
+    else:
+        await message.reply_text(f"<b>User {user_name} - {user_id_to_remove} is not a pro user or was not found in the pro list.</b>")
 
 #========================================================================#
 
@@ -238,9 +174,3 @@ async def admin_list_command(client: Client, message: Message):
     else:
 
         await message.reply_text("<b>No admin users found.</b>")
-
-
-
-
-
-
