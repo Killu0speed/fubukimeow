@@ -1,7 +1,7 @@
 # database/database.py
 
 import json
-from motor.motor_asyncio import AsyncIOMotorClient
+import pymongo
 
 # ============================================================= #
 # 🔹 Load DB config from setup.json
@@ -19,39 +19,30 @@ DB_NAME = config.get("db_name", "filesharexbot")
 # ============================================================= #
 # 🔹 Setup MongoDB
 # ============================================================= #
-mongo_client = AsyncIOMotorClient(MONGO_URI)
-db = mongo_client[DB_NAME]
+dbclient = pymongo.MongoClient(MONGO_URI)
+db = dbclient[DB_NAME]
 
-# Clicks collection
+# Collections
+user_data = db["users"]
+premium_users = db["pros"]
 clicks = db["clicks"]
 
-# ============================================================= #
-# 🔹 Functions
-# ============================================================= #
 
 async def add_click(user_id: int, base64_string: str):
-    """
-    Store a unique base64 string per user (no duplicates).
-    """
     try:
-        await clicks.update_one(
+        clicks.update_one(
             {"_id": user_id},
             {"$addToSet": {"base64_strings": base64_string}},
             upsert=True
         )
         return True
     except Exception as e:
-        print(f"[DB] Failed to store base64 string for {user_id}: {e}")
+        print(f"[DB] Failed to store base64 string: {e}")
         return False
 
-
-async def total_click(base64_string: str) -> int:
-    """
-    Count how many unique users clicked a given base64_string.
-    """
+async def total_click(base64_string: str):
     try:
-        count = await clicks.count_documents({"base64_strings": base64_string})
-        return count
+        return clicks.count_documents({"base64_strings": base64_string})
     except Exception as e:
-        print(f"[DB] Failed to count clicks for {base64_string}: {e}")
+        print(f"[DB] Failed to count clicks: {e}")
         return 0
