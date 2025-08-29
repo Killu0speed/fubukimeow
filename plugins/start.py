@@ -223,32 +223,46 @@ async def request_command(client: Client, message: Message):
 
 
 #===============================================================#
+WAIT_MSG = "Please wait while I fetch your profile..."
 
-@Client.on_message(filters.command('profile') & filters.private)
+@Client.on_message(filters.command("profile") & filters.private)
 async def my_plan(client: Client, message: Message):
     user_id = message.from_user.id
-    is_admin = user_id in client.admins  # ✅ Fix here
+    is_admin = user_id in client.admins  # You must set client.admins when starting bot
 
+    # Block admins & owner
     if is_admin or user_id == OWNER_ID:
-        await message.reply_text("🔹 You're my sensei! This command is only for users.")
+        await message.reply_text("This command is only for users.")
         return
-    
+
+    # Delete user command for clean UI
+    await message.delete()
+
+    # Temporary wait message
+    wait_msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
+
+    # Check premium status from MongoDB
     is_user_premium = await client.mongodb.is_pro(user_id)
 
+    # Build profile text
     if is_user_premium:
-        await message.reply_text(
-            "**👤 Profile Information:**\n\n"
-            "🔸 Ads: Disabled\n"
-            "🔸 Plan: Premium\n"
-            "🔸 Request: Enabled\n\n"
-            "🌟 You're a Premium User!"
+        new_msg_text = (
+            f"Name: {message.from_user.first_name}\n\n"
+            "Ad Link: Disabled\n"
+            "Direct Links: Enabled\n"
+            "On-Demand Hentai: Enabled\n\n"
+            "You are a Pro User"
         )
+        await wait_msg.edit_text(new_msg_text)
+
     else:
-        await message.reply_text(
-            "**👤 Profile Information:**\n\n"
-            "🔸 Ads: Enabled\n"
-            "🔸 Plan: Free\n"
-            "🔸 Request: Disabled\n\n"
-            "🔓 Unlock Premium to get more benefits\n"
-            "Contact: @Izana_Sensei"
+        new_msg_text = (
+            f"Name: {message.from_user.first_name}\n\n"
+            "Ad Link: Enabled\n"
+            "Direct Links: Disabled\n"
+            "On-Demand Hentai: Disabled"
         )
+        reply_markup = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("Premium", callback_data="premium")]]
+        )
+        await wait_msg.edit_text(new_msg_text, reply_markup=reply_markup)
